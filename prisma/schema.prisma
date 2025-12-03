@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  TOURIST
+  GUIDE
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+// USER MODEL
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  password     String
+  profileImage String?
+  bio          String?
+  role         UserRole @default(TOURIST)
+  languages    String[]
+
+  // Guide specific
+  expertise    String[]
+  dailyRate    Float?
+  avgRating    Float?   @default(0)
+  totalReviews Int?     @default(0)
+
+  // Tourist specific
+  travelPreferences String[]
+
+  // Relations
+  listings        Listing[]
+  touristBookings Booking[]  @relation("touristBookings")
+  guideBookings   Booking[]  @relation("guideBookings")
+  reviews         Review[]
+  wishlist        Wishlist[]
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("Users")
+}
+
+// ----------------------------
+// LISTING MODEL
+// ----------------------------
+model Listing {
+  id           String  @id @default(uuid())
+  title        String
+  description  String
+  itinerary    String?
+  price        Float
+  duration     Int
+  meetingPoint String
+  maxGroupSize Int
+
+  images       String[]
+  category     String // Food, Adventure, Photography, etc.
+  tourLanguage String // English, Spanish, etc.
+
+  avgRating    Float? @default(0)
+  totalReviews Int?   @default(0)
+
+  guide   User   @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  guideId String
+
+  bookings     Booking[]
+  reviews      Review[]
+  wishListedBy Wishlist[]
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("Listings")
+}
+
+// ----------------------------
+// BOOKING MODEL
+// ----------------------------
+model Booking {
+  id          String        @id @default(uuid())
+  startTime   DateTime
+  endTime     DateTime?
+  requestedAt DateTime      @default(now())
+  status      BookingStatus @default(PENDING)
+
+  tourist   User   @relation("touristBookings", fields: [touristId], references: [id], onDelete: Cascade)
+  touristId String
+
+  guide   User   @relation("guideBookings", fields: [guideId], references: [id], onDelete: Cascade)
+  guideId String
+
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId String
+
+  payment Payment?
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("Bookings")
+}
+
+// ----------------------------
+// REVIEW MODEL
+// ----------------------------
+model Review {
+  id      String  @id @default(uuid())
+  rating  Int
+  comment String?
+
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId String
+
+  tourist   User   @relation(fields: [touristId], references: [id], onDelete: Cascade)
+  touristId String
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("Reviews")
+}
+
+// ----------------------------
+// PAYMENT MODEL
+// ----------------------------
+model Payment {
+  id              String  @id @default(uuid())
+  amount          Float
+  method          String
+  transactionId   String?
+  providerPayload Json?
+
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId String  @unique
+
+  status String
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("Payments")
+}
+
+// ----------------------------
+// WISHLIST MODEL
+// ----------------------------
+model Wishlist {
+  id String @id @default(uuid())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId String
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("Wishlists")
+}
