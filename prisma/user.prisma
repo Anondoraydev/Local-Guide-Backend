@@ -11,7 +11,7 @@ model User {
   gender         Gender?
   currentLocation String?
   verifiedBadge  Boolean       @default(false)
-  interests      String[]
+  interests      String[]      
   visitedCountries String[]
   isPublic       Boolean       @default(true)
   travelPlans       TravelPlan[]

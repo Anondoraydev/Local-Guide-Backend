@@ -13,7 +13,7 @@ async function travelBuddyServer() {
         `🚀 TravelBuddyServer is running on http://localhost:${dbConfig.port}`
       );
       console.log(`🌱 Environment: ${dbConfig.node_env}`);
-      // console.log(`💾 Database URL: ${dbConfig.database_url}`);
+      console.log(`💾 Database URL: ${dbConfig.database_url}`);
     });
 
     // Function to gracefully shut down the server

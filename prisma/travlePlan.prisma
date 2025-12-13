@@ -33,7 +33,7 @@ model TravelMatch {
   matchedUser    User      @relation("UserMatches", fields: [matchedUserId], references: [id])
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
-
+  
 }
 
 

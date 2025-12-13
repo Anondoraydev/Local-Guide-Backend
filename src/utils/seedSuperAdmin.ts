@@ -1,46 +1,44 @@
-import bcrypt from "bcryptjs";
+import bcryptjs from "bcryptjs";
 import dbConfig from "../config/db.config";
 import { prisma } from "../config/prisma";
+import { IUser } from "../modules/user/user.interface";
 import { UserRole } from "../generated/prisma/enums";
 
 export const seedSuperAdmin = async () => {
   try {
-    const existingAdmin = await prisma.user.findUnique({
-      where: { email: dbConfig.superAdmin.email },
+    const isSuperAdminExist = await prisma.user.findUnique({
+      where: {
+        email: dbConfig.superAdmin.email,
+      },
     });
 
-    if (existingAdmin) {
+    if (isSuperAdminExist) {
       console.log("Super Admin Already Exists!");
       return;
     }
 
-    console.log("Creating Super Admin...");
+    console.log("Trying to create Super Admin...");
 
-    const hashedPassword = await bcrypt.hash(
+    const hashedPassword = await bcryptjs.hash(
       dbConfig.superAdmin.password!,
       Number(dbConfig.bcryptJs_salt)
     );
 
-    const superAdminData = {
-      fullName: "Super Admin",
+    const payload: IUser = {
+      fullName: "Super admin",
+      role: UserRole.SUPER_ADMIN,
       email: dbConfig.superAdmin.email!,
       password: hashedPassword,
-      role: UserRole.SUPER_ADMIN, // make sure this exists in your Prisma enum
       verifiedBadge: true,
-      interests: ["Management", "All"], // if in schema: string[] or Json
-      visitedCountries: ["Bangladesh"], // if in schema: string[] or Json
+      interests: ["Management", "All"],
+      visitedCountries: ["Bangladesh"],
       isPublic: false,
     };
 
-    const superAdmin = await prisma.user.create({
-      data: superAdminData,
-    });
-
-    console.log("Super Admin created successfully!");
-    console.log(superAdmin);
+    const superadmin = await prisma.user.create({ data: payload });
+    console.log("Super Admin Created Successfuly! \n");
+    console.log(superadmin);
   } catch (error) {
-    console.error("Error seeding Super Admin:", error);
-  } finally {
-    await prisma.$disconnect();
+    console.log(error);
   }
 };
